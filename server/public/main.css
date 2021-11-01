@@ -1,0 +1,30 @@
+body {
+    background-image: url("img/bg.jpg") ;
+    background-repeat: no-repeat;
+}
+.navbar {
+    background-color: rgb(119, 53, 233);
+}
+.container {    
+    background-color: rgb(61, 13, 145);
+    width: 30% !important;
+    margin-top: 10em;
+}
+.plans {
+    width: 100% !important;
+    background: none;
+}
+.avatar {
+    width: 130px;
+    height: 130px;
+    position: absolute;
+    top: 2.5em;
+    left: calc(50% - 65px);
+}
+.footer {
+    font-size: 35px;
+    text-align: center;
+}
+.footer p {
+    font-size: 15px;
+}
