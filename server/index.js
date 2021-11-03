@@ -1,6 +1,11 @@
 const express = require("express")
 const stripe = require("stripe")('sk_test_51JplglSDy2OlrEImzLZjAjDA8KLHvAY4H40FItTFZUrVk22qOpTw1qHHryEKA4rRWgNR4Ui88xZBSwYsZM5Gkddu00WszV6DTq');
+const ejs = require('ejs');
 const app = express()
+
+app.use(express.static("public"))
+app.set('view engine', 'ejs');
+app.set('views', './public/views');
 
 // Libraries
 
@@ -80,8 +85,20 @@ app.post('/webhook', async (req, res) => {
     res.sendStatus(200);
   });
 
-// Main Website
 
-app.use(express.static("public"))
+// Main Website Routes 
+
 
 app.listen(process.env.PORT || 8080)
+
+app.get('/', function (req, res) {res.render('pages/index')});
+app.get('/index', function (req, res) {res.render('pages/index')});
+app.get('/home', function (req, res) {res.render('pages/index')});
+app.get('/login', function (req, res) {res.render('pages/login')});
+app.get('/signin', function (req, res) {res.render('pages/login')});
+app.get('/signup', function (req, res) {res.render('pages/signup')});
+app.get('/browse', function (req, res) {res.render('pages/browse')});
+app.get('/subscribe', function (req, res) {res.render('pages/subscribe')});
+app.get('/premium', function (req, res) {res.render('pages/subscribe')});
+
+app.get('/main.css', function (req, res) {res.sendFile(__dirname + "/public/css/main.css")});
