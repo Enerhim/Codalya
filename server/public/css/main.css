@@ -16,6 +16,10 @@ body {
 ul {
     list-style-type: none !important;
 }
+.payment-status-img {
+    width: 40px;
+    height: 40px;
+}
 .logo-circle {
     background-color: #fff;
     width: 40px;

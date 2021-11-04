@@ -22,7 +22,7 @@ app.get("/css", (req, res) => {
 
 // Checkout and Payment
 
-app.post("/checkout", async (req, res) => {
+app.post("/checkout-monthly", async (req, res) => {
     const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
@@ -32,12 +32,29 @@ app.post("/checkout", async (req, res) => {
                 quantity: 1
             }
         ],
-        success_url:"https://www.youtube.com/watch?v=MbqSMgMAzxU&t=33s",
-        cancel_url:"https://www.youtube.com/watch?v=MbqSMgMAzxU&t=33s"
+        success_url:"http://localhost:8080/paymentS",
+        cancel_url:"http://localhost:8080/paymentF"
     })
 
-    res.send(session)
+    res.redirect(303, session.url)
 })
+
+app.post("/checkout-yearly", async (req, res) => {
+  const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [
+          {
+              price: 'price_1JqbEGSDy2OlrEImpqOE2fIZ',
+              quantity: 1
+          }
+      ],
+      success_url:"http://localhost:8080/paymentS",
+      cancel_url:"http://localhost:8080/paymentF"
+  })
+
+  res.redirect(303, session.url)
+})  
 
 app.post('/webhook', async (req, res) => {
     let data;
@@ -100,5 +117,7 @@ app.get('/signup', function (req, res) {res.render('pages/signup')});
 app.get('/browse', function (req, res) {res.render('pages/browse')});
 app.get('/subscribe', function (req, res) {res.render('pages/subscribe')});
 app.get('/premium', function (req, res) {res.render('pages/subscribe')});
+app.get('/paymentF', function (req, res) {res.render('pages/payment_fail')});
+app.get('/paymentS', function (req, res) {res.render('pages/payment_success')});
 
 app.get('/main.css', function (req, res) {res.sendFile(__dirname + "/public/css/main.css")});
