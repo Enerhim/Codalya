@@ -3,7 +3,22 @@ const stripe = require("stripe")('sk_test_51JplglSDy2OlrEImzLZjAjDA8KLHvAY4H40FI
 const ejs = require('ejs');
 const app = express()
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDi7z2hYRV1DDs2snF0GxBNXESXFScQjSA",
+  authDomain: "codalya.firebaseapp.com",
+  projectId: "codalya",
+  storageBucket: "codalya.appspot.com",
+  messagingSenderId: "587660274507",
+  appId: "1:587660274507:web:4a36bf6139e9e8e771d6ce",
+  measurementId: "G-JZXCJJWDYH"
+};
+const firebase = require("firebase/app").initializeApp(firebaseConfig)
+const firebaseAuth = require("firebase/auth");
+const { errorPrefix } = require("@firebase/util");
+const { json } = require("express");
+
 app.use(express.static("public"))
+app.use(express.urlencoded());
 app.set('view engine', 'ejs');
 app.set('views', './public/views');
 
@@ -121,3 +136,61 @@ app.get('/paymentF', function (req, res) {res.render('pages/payment_fail')});
 app.get('/paymentS', function (req, res) {res.render('pages/payment_success')});
 
 app.get('/main.css', function (req, res) {res.sendFile(__dirname + "/public/css/main.css")});
+
+// Login System..
+
+
+// Sign Up
+app.post("/signUp", async (req, res) => {
+
+  var email = req.body.email
+  var password = req.body.password
+  var confirmP = req.body.confirmP
+
+  let response = {}
+  response["errors"] = []
+  response["feedback"] = []
+
+  // Check Password
+  if (password !== confirmP) {
+    response["errors"].push("Confirm Password and Password do not match")
+  }
+
+  // Create user
+  await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.getAuth(), email, password )
+  .then((userCredential) => {
+    var user = userCredential.user;
+    response["feedback"].push("Authenticated")
+  })
+  .catch((error) => {
+    response["errors"].push(error.code) 
+  });
+
+  console.log("Response: ", response)
+  res.send(JSON.stringify(response))
+})
+
+// Sign IN
+
+app.post("/signIn", async (req, res) => {
+  var email = req.body.email
+  var password = req.body.password
+
+  var response = {}
+  response["errors"] = []
+  response["feedback"] = []
+
+  // Authenticate User
+
+  await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.getAuth(), email, password) .then((userCredential) => {
+    const user = userCredential.user;
+    response["feedback"].push("Authenticated")  
+  })
+  .catch((error) => { 
+    console.log(error.code)
+    response["errors"].push(error.code) 
+  });
+
+  console.log(response)
+  res.send(JSON.stringify(response))
+})

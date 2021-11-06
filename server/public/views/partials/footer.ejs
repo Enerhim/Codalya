@@ -1,0 +1,58 @@
+<script>
+    function signUp() {
+        $.ajax({
+            url: "http://localhost:8080/signUp",
+            method: "POST",
+            data: {
+                "email": $("#email").val(),
+                "password": $("#password").val(),
+                "confirmP": $("#confirm-password").val(),
+            },
+            dataType: "json",
+            success: function (result, status) {
+                if (result) {
+                    if (result.errors[0] == "auth/weak-password") {
+                        $("#error").html("Password should be atleast 6 characters")
+                    } else if (result.errors[0] == "auth/email-already-in-use") {
+                        $("#error").html("Email is already in use")
+                    }
+
+                    if (result.feedback[0]) {
+                        document.location.href = "/login"
+                    }
+                }
+            }
+        })
+    }
+
+    function signIn() {
+        $.ajax({
+            url: "http://localhost:8080/signIn",
+            method: "POST",
+            data: {
+                "email": $("#email").val(),
+                "password": $("#password").val(),
+            },
+            dataType: "json",
+            success: function (result, status) {
+                if (result) {
+                    if (result.errors[0] == "auth/user-not-found") {
+                        $("#error").html("User Not Found")
+                    } else if (result.errors[0] == "auth/invalid-password") {
+                        $("#error").html("Invalid Password")
+                    }
+                    else if (result.errors[0] == "auth/invalid-email") {
+                        $("#error").html("Invalid Email")
+                    }
+
+                    // Logged in
+                    if (result.feedback[0]) {
+                        console.log("Logged in")
+                        localStorage.setItem("email", $("#email").val())
+                        document.location.href = "/index"
+                    }
+                }
+            }
+        })
+    }
+</script>

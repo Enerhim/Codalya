@@ -7,10 +7,22 @@
             <a class="nav-link text-white" href="browse">Browse</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-white" href="login">Login</a>
+            <a class="nav-link text-white login-link" href="login">Login</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-white account-link" href="account">Account</a>
         </li>
         <li class="nav-item">
             <a class="nav-link text-white" href="subscribe">Premium</a>
         </li>
     </ul>
+    <script>
+        if (localStorage.getItem("email")) {
+            document.getElementsByClassName("account-link")[0].hidden = false
+            document.getElementsByClassName("login-link")[0].hidden = true
+        } else {
+            document.getElementsByClassName("account-link")[0].hidden = true
+            document.getElementsByClassName("login-link")[0].hidden = false
+        }
+    </script>
 </nav>

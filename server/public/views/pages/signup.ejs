@@ -17,30 +17,27 @@
         <div class="row">
             <div class="col">
                 <img src="img/avatar.jpg" alt="Avatar" class="avatar rounded-circle text-center shadow-lg">
-                <form action="" method="POST">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username">
-                    </div>
+                <form action="/signup" method="POST">   
                     <div class="mb-3">
                         <label for="email" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="email" aria-describedby="emailHelp">
+                        <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp" required>
                         <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password">
+                        <input type="password" class="form-control" name="password" id="password" required>
                     </div>
                     <div class="mb-3">
                         <label for="confirm-password" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirm-password">
+                        <input type="password" class="form-control" name="confirm-password" id="confirm-password" required>
                     </div>
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                        <input type="checkbox" class="form-check-input" id="policy"  name="policy" required>
                         <label class="form-check-label" for="exampleCheck1">Policy</label>
                     </div>
+                    <div id="error" class="form-text text-danger"></div>
                     <div class="mb-3 d-flex">
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="button" class="btn btn-primary" onclick="signUp()">Login</button>
                         <div id="signUpHelp" class="form-text ms-2 text-white">Already have an account? <a href="login" class="text-primary">Login</a> </div>
                     </div>
                 </form>
@@ -50,5 +47,8 @@
     <div class="footer mt-5">
         <p> &copy; 2021 Himanshu Sharma and Aary Angre </p>
     </div>
+
+    <%- include("../partials/footer") %>
+
 </body>
 </html>
