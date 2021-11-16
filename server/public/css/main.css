@@ -33,6 +33,14 @@ ul {
     top: 6.4em;
     left: calc(50% - 65px);
 }
+.settings-container {
+    padding: 8px 16px;
+    margin: 0px;
+}
+.settings {
+    display: flex !important;
+    flex-direction: row-reverse !important;
+}
 .footer {
     font-size: 35px;
     text-align: center;
