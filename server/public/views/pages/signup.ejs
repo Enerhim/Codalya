@@ -37,7 +37,10 @@
                     </div>
                     <div id="error" class="form-text text-danger mb-2"></div>
                     <div class="mb-3 d-flex">
-                        <button type="button" class="btn btn-primary" onclick="signUp()">Login</button>
+                        <button type="button" class="btn btn-primary spinner-here" onclick="signUp()">Sign Up</button>
+                        <div class="spn spinner-border text-light" role="status" hidden>
+                            <span class="sr-only">Loading...</span>
+                        </div>
                         <div id="signUpHelp" class="form-text ms-2 text-white">Already have an account? <a href="login" class="text-primary">Login</a> </div>
                     </div>
                 </form>
