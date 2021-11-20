@@ -24,6 +24,11 @@ app.use(express.static("public"))
 app.use(express.urlencoded({ extended: true }))
 app.set('view engine', 'ejs')
 app.set('views', './public/views')
+app.use(
+  express.json({
+    verify: (req, res, buffer) => (req['rawBody'] = buffer),
+  })
+);
 
 // Libraries
 
@@ -75,52 +80,54 @@ app.post("/checkout-yearly", async (req, res) => {
 })  
 
 app.post('/webhook', async (req, res) => {
-    let data
-    let eventType
-    // Check if webhook signing is configured.
-    const webhookSecret = 'whsec_GUf6fQy6f7lPSHHgAkb2d8UusJZl5kpk'
-  
-    if (webhookSecret) {
-      // Retrieve the event by verifying the signature using the raw body and secret.
-      let event
-      let signature = req.headers['stripe-signature']
-  
-      try {
-        event = stripe.webhooks.constructEvent(
-          req['rawBody'],
-          signature,
-          webhookSecret
-        )
-      } catch (err) {
-        console.log(`⚠️  Webhook signature verification failed.`)
-        return res.sendStatus(400)
-      }
-      // Extract the object from the event.
-      data = event.data
-      eventType = event.type
-    } else {
-      // Webhook signing is recommended, but if the secret is not configured in `config.js`,
-      // retrieve the event data directly from the request body.
-      data = req.body.data
-      eventType = req.body.type
+  let data;
+  let eventType;
+  const webhookSecret = 'whsec_GUf6fQy6f7lPSHHgAkb2d8UusJZl5kpk';
+
+  if (webhookSecret) {
+    let event;
+    let signature = req.headers['stripe-signature'];
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req['rawBody'],
+        signature,
+        webhookSecret
+      );
+    } catch (err) {
+      console.log(`⚠️  Webhook signature verification failed.`);
+      return res.sendStatus(400);
     }
-  
-    switch (eventType) {
-      case 'checkout.session.completed':
-        console.log(data)
-        break
-      case 'invoice.paid':
-        console.log(data)
-        break
-      case 'invoice.payment_failed':
-        console.log(data)
-        break
-      default:
-      // Unhandled event type
-    }
-  
-    res.sendStatus(200)
-})
+    data = event.data.object;
+    eventType = event.type;
+  } else {
+    data = req.body.data;
+    eventType = req.body.type;
+  }
+
+  switch (eventType) {
+    case 'checkout.session.completed':
+      console.log(data["amount_paid"])
+      console.log("checkout.session.completed----------------------------------------------------------\n\n\n\n\n\n\n")
+      console.log(data)
+      break;
+    case 'invoice.paid':
+      console.log(data["amount_paid"])
+      console.log("invoice.paid----------------------------------------------------------\n\n\n\n\n\n\n")
+      console.log(data)
+      break;
+    case 'invoice.payment_failed':
+      console.log(data["amount_paid"])
+      console.log("invoice.payment_failed----------------------------------------------------------\n\n\n\n\n\n\n")
+      console.log(data)
+      break;
+    default:
+    // Unhandled event type
+  }
+
+  res.sendStatus(200);
+});
+
 
 //#endregion
 
