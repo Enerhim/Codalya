@@ -16,7 +16,7 @@ const firebaseConfig = {
 }
 const firebase = require("firebase/app").initializeApp(firebaseConfig)
 const firebaseAuth = require("firebase/auth")
-const { addDoc, collection, where } = require("@firebase/firestore")
+const { addDoc, collection, where, updateDoc } = require("@firebase/firestore")
 const firebaseDB = require("firebase/firestore")
 const firestore = firebaseDB.getFirestore()
 
@@ -30,7 +30,7 @@ app.use(
   })
 );
 
-// Libraries
+//#region  Libraries
 
 app.get("/css", (req, res) => {
     const apiKey = req.query.apiKey 
@@ -42,6 +42,50 @@ app.get("/css", (req, res) => {
         res.status(403).end()
     }
 })
+
+app.post("/updateDomains", async (req, res) => {
+  var response = {}
+  response["errors"] = []
+  response["feedback"] = []
+
+  var aid = (req.body.aid)
+  aid = aid.substring(74, aid.length - 64)
+
+  const domains = req.body.domains
+
+  // Get Email From Aid
+  const q = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("aid", "==", aid))
+  const querySnapshot = await firebaseDB.getDocs(q)
+
+  var email = ""
+
+  querySnapshot.forEach((doc) => {
+    email = doc.get("user_email")
+  })
+
+  // Use email to get doc ref
+
+  const q2 = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("customer_email", "==", email))
+  const querySnapshot2 = await firebaseDB.getDocs(q2)
+
+  querySnapshot2.forEach((doc2) => {
+    const keyRef = firebaseDB.doc(firestore, "keys", doc2.id)
+
+    domains.forEach(async (domain) => {
+      await firebaseDB.updateDoc(keyRef, {
+        allowed_domains: firebaseDB.arrayUnion(domain)
+      }).then(() => {
+        console.log(`Updated ${domain}`)
+      }).catch((e) => {
+        console.log("Error: " + domain + ": " + e)
+      })
+    });
+  })
+
+  res.send(JSON.stringify(response))
+})
+
+//#endregion
 
 //#region Checkout and Payment
 
@@ -56,7 +100,8 @@ app.post("/checkout-monthly", async (req, res) => {
             }
         ],
         success_url:"http://localhost:8080/paymentS",
-        cancel_url:"http://localhost:8080/paymentF"
+        cancel_url:"http://localhost:8080/paymentF",
+        
     })
 
     res.redirect(303, session.url)
@@ -107,28 +152,151 @@ app.post('/webhook', async (req, res) => {
 
   switch (eventType) {
     case 'checkout.session.completed':
-      console.log(data["amount_paid"])
-      console.log("checkout.session.completed----------------------------------------------------------\n\n\n\n\n\n\n")
-      console.log(data)
       break;
     case 'invoice.paid':
-      console.log(data["amount_paid"])
-      console.log("invoice.paid----------------------------------------------------------\n\n\n\n\n\n\n")
-      console.log(data)
+      if (data["amount_paid"] == 10000) {
+
+        const subscription = await stripe.subscriptions.retrieve(
+          data["subscription"]
+        );
+        
+        addMonthly(data["customer_email"], subscription["current_period_start"], subscription["current_period_end"], data["subscription"])
+
+      } else if (data["amount_paid"] == 110000) {
+        console.log("Yearly")
+      } else {
+        console.log(data["amount_paid"])
+      }
       break;
     case 'invoice.payment_failed':
-      console.log(data["amount_paid"])
-      console.log("invoice.payment_failed----------------------------------------------------------\n\n\n\n\n\n\n")
-      console.log(data)
       break;
     default:
-    // Unhandled event type
+      break;
   }
 
   res.sendStatus(200);
 });
 
+async function generateAPIKey() {
+  const apiKey = crypto.randomBytes(16).toString("hex")
+  
+  const q = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("key", "==", apiKey));
+  const querySnapshot = await firebaseDB.getDocs(q)
 
+  if(!querySnapshot.empty) {
+    generateAPIKey()
+  } else {
+    console.log("Gen Key: " + apiKey)
+    return apiKey
+  }
+}
+
+async function addMonthly(email, sub_start, sub_end, sub_id) {
+
+  // Generate API key if customer does not have one
+
+  const q = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("user_email", "==", email));
+  const querySnapshot = await firebaseDB.getDocs(q)
+  
+  querySnapshot.forEach(async(doc) => {
+    if (doc.get("has_api_key") == false) {
+      const apiKey = await generateAPIKey()
+      console.log(apiKey)
+      const docRef = await firebaseDB.addDoc(firebaseDB.collection(firestore, "keys"), {
+        active: true,
+        customer_email: email,
+        key: apiKey
+      }).then(async () => {
+        const q2 = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("user_email", "==", email));
+        const querySnapshot2 = await firebaseDB.getDocs(q2)
+
+        querySnapshot2.forEach(async(doc) => {
+          const userRef = firebaseDB.doc(firestore, "users", doc.id)
+          await firebaseDB.updateDoc(userRef, {
+            has_api_key: true,
+            currently_premium: true,
+            sub_start: sub_start,
+            remaining_months: firebaseDB.increment(1),
+            sub_end: sub_end,
+            subscription_stripe_id: sub_id
+          })
+        })
+      }).catch((e) => {
+        console.log("e")
+      })
+        
+    } else {
+      const q = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("user_email", "==", email));
+      const querySnapshot = await firebaseDB.getDocs(q)
+
+      const q2 = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("customer_email", "==", email));
+      const querySnapshot2 = await firebaseDB.getDocs(q2)
+
+      querySnapshot.forEach(async(doc) => {
+        const userRef = firebaseDB.doc(firestore, "users", doc.id)
+        querySnapshot2.forEach(async(doc2) =>{
+          const keyRef = firebaseDB.doc(firestore, "keys", doc2.id)
+          
+          await firebaseDB.updateDoc(userRef, {
+            has_api_key: true,
+            currently_premium: true,
+            sub_start: sub_start,
+            remaining_months: firebaseDB.increment(1),
+            sub_end: sub_end,
+            subscription_stripe_id: sub_id
+          }).then(async () => {
+            await firebaseDB.updateDoc(keyRef, {
+              active: true
+            })
+          })
+
+        })
+
+      })
+    }
+  })
+}
+
+app.post("/cancelSub", async (req, res) => {
+  var response = {}
+  response["errors"] = []
+  response["feedback"] = []
+
+  var aid = (req.body.aid)
+  aid = aid.substring(74, aid.length - 64)
+
+  const q = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("aid", "==", aid  ));
+  const querySnapshot = await firebaseDB.getDocs(q)
+
+  querySnapshot.forEach(async(doc) => {
+    const userRef = firebaseDB.doc(firestore, "users", doc.id)
+    const deleted = await stripe.subscriptions.del(
+      doc.get("subscription_stripe_id")
+    )
+
+    firebaseDB.updateDoc(userRef, {
+      subscription_stripe_id: "none",
+      remaining_months: 0,
+      currently_premium: false,
+      sub_end: "none",
+      sub_start: "none"
+    })
+
+    const q2 = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("customer_email", "==", doc.get("user_email")));
+    const querySnapshot2 = await firebaseDB.getDocs(q2)
+
+    querySnapshot2.forEach(async(doc2) => {
+      keyRef = firebaseDB.doc(firestore, "keys", doc2.id)
+      firebaseDB.updateDoc(keyRef, {
+        active: false
+      })
+      response["feedback"].push("Disabled Key")
+    })
+    response["feedback"].push("Canceled Subs")
+  })
+
+  res.send(JSON.stringify(response))
+})
 //#endregion
 
 //#region Main Website Routes 
@@ -156,8 +324,9 @@ app.get('/main.css', function (req, res) {res.sendFile(__dirname + "/public/css/
 //#endregion
 
 //#region Authentication
+
 // Sign Up
-app.post("/signUp", async (req, res) => {
+app.post("/signUp", async (req, res) => { 
 
   var email = req.body.email
   var password = req.body.password
@@ -177,18 +346,19 @@ app.post("/signUp", async (req, res) => {
   .then( async (userCredential) => {
     response["feedback"].push("Authenticated")
     try {
-      const docRef = await addDoc(collection(firestore, "users"), {
+      const docRef = await firebaseDB.addDoc(firebaseDB.collection(firestore, "users"), {
         currently_premium: false,
-        remaining_months: 0,
-        subscription_end: firebaseDB.serverTimestamp() ,
+        has_api_key: false,
         user_email: email,
         createdAt: firebaseDB.serverTimestamp(),
         verified: false,
-        aid: userCredential.user.uid
+        aid: userCredential.user.uid,
+        sub_start: "",
+        sub_end: '',
+        remaining_months: ""
       })
 
       firebaseAuth.sendEmailVerification(firebaseAuth.getAuth().currentUser).then(() => {
-        console.log("EMAIL")
       })
     } catch (e) {
       response["errors"].push(e)
@@ -284,16 +454,44 @@ app.post("/getSettings", async (req, res) => {
     createdAt = createdAt.toString().split(' ')
     createdAt = `${createdAt[1]} ${createdAt[2]} ${createdAt[3]} @ ${createdAt[4]} ${createdAt[5]}`
     response["feedback"].push(createdAt)
-    
-    response["feedback"].push(doc.get("currently_premium"))
+  })
+  res.send(JSON.stringify(response))
+})
 
-    var sub_end = doc.get("subscription_end").toDate()
+app.post("/getPremiumData", async (req, res) => {
+  var response = {}
+  response["errors"] = []
+  response["feedback"] = []
+
+  var aid = (req.body.aid)
+  aid = aid.substring(74, aid.length - 64)
+
+  const q = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("aid", "==", aid))
+  const querySnapshot = await firebaseDB.getDocs(q)
+
+  let email
+
+  querySnapshot.forEach(async (doc) => {
+    response["feedback"].push(doc.get("currently_premium"))
+   
+    var sub_end = new Date(doc.get("sub_end") * 1000)
     sub_end = sub_end.toString().split(' ')
     sub_end = `${sub_end[1]} ${sub_end[2]} ${sub_end[3]} @ ${sub_end[4]} ${sub_end[5]}`
     response["feedback"].push(sub_end)
-
     
+    response["feedback"].push(doc.get("remaining_months"))
+    response["feedback"].push(doc.get("sub_end"))
+
+    email = doc.get("user_email")
   })
+
+  const q2 = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("customer_email", "==", email ))
+  const querySnapshot2 = await firebaseDB.getDocs(q2)
+
+  querySnapshot2.forEach((doc2) => {
+    response["feedback"].push(doc2.get("key"))
+  })
+
   res.send(JSON.stringify(response))
 })
 

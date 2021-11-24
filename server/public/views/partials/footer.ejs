@@ -1,5 +1,4 @@
 <script>
-
     function signUp() {
         $.ajax({
             url: "http://localhost:8080/signUp",
@@ -14,7 +13,7 @@
                 document.getElementsByClassName("spinner-here")[0].hidden = true
                 document.getElementsByClassName("spn")[0].hidden = false
             },
-            complete: function() {
+            complete: function () {
                 document.getElementsByClassName("spinner-here")[0].hidden = false
                 document.getElementsByClassName("spn")[0].hidden = true
             },
@@ -47,7 +46,7 @@
                 document.getElementsByClassName("spinner-here")[0].hidden = true
                 document.getElementsByClassName("spn")[0].hidden = false
             },
-            complete: function() {
+            complete: function () {
                 document.getElementsByClassName("spinner-here")[0].hidden = false
                 document.getElementsByClassName("spn")[0].hidden = true
             },
@@ -98,11 +97,11 @@
             data: {
                 "aid": localStorage.getItem("aid")
             },
-            beforeSend: function() {
+            beforeSend: function () {
                 document.getElementsByClassName("spinner-here")[0].hidden = true
                 document.getElementsByClassName("spn")[0].hidden = false
             },
-            complete: function() {
+            complete: function () {
                 document.getElementsByClassName("spinner-here")[0].hidden = false
                 document.getElementsByClassName("spn")[0].hidden = true
             },
@@ -110,16 +109,92 @@
                 $(".email").html(`<strong>Email:</strong> ${result.feedback[0]}`)
                 $(".pass").html(`<strong> Password:</strong> ${result.feedback[1]} <button class="btn ms-2 text-primary">Change Password</button>`)
                 $(".created").html(`Account created at ${result.feedback[2]}`)
+            }
+        })
+    }
 
-                if (result.feedback[3] == true) {
+    function getPremiumData() {
+        $.ajax({
+            url: "http://localhost:8080/getPremiumData",
+            method: "POST",
+            dataType: "json",
+            data: {
+                "aid": localStorage.getItem("aid")
+            },
+            beforeSend: function () {
+                document.getElementsByClassName("spinner-here")[0].hidden = true
+                document.getElementsByClassName("spn")[0].hidden = false
+            },
+            complete: function () {
+                document.getElementsByClassName("spinner-here")[0].hidden = false
+                document.getElementsByClassName("spn")[0].hidden = true
+            },
+            success: function (result, status) {
+                if (!localStorage.getItem("aid")) {
+                    window.location.href = "/signup"
+                }
+
+                if (result.feedback[0] == true) {
                     document.getElementsByClassName("subbed")[0].hidden = false
                     document.getElementsByClassName("unsubbed")[0].hidden = true
-                    $(".sub-end").html(`<strong> Subscription ends at </strong> ${result.feedback[4]}`)
+
+                    $("#API_KEY").val(result.feedback[4])
+                    if (result.feedback[2] == 1) {
+                        $(".current-plan").html(`<strong>Current Plan: </strong> Monthly`)
+                    } else if (result.feedback[2] > 1) {
+                        $(".current-plan").html(`<strong>Current Plan: </strong> Yearly`)
+                    } else {
+                    }
                 } else {
                     document.getElementsByClassName("subbed")[0].hidden = true
                     document.getElementsByClassName("unsubbed")[0].hidden = false
                 }
+                console.log(result.feedback)
+            }
+        })
+    }
 
+    function cancelSubscription() {
+        $.ajax({
+            url: "http://localhost:8080/cancelSub",
+            method: "POST",
+            dataType: "json",
+            data: {
+                "aid": localStorage.getItem("aid")
+            },
+            beforeSend: function () {
+                document.getElementsByClassName("spinner-here-2")[0].hidden = true
+                document.getElementsByClassName("spn-2")[0].hidden = false
+            },
+            complete: function () {
+                document.getElementsByClassName("spinner-here-2")[0].hidden = false
+                document.getElementsByClassName("spn-2")[0].hidden = true
+            },
+            success: function (result, status) {
+                document.location.href = "/account"
+                console.log(result.feedback)
+            }
+        })
+    }
+
+    function updateDomains(domains) {
+        $.ajax({
+            url: "http://localhost:8080/updateDomains",
+            method: "POST",
+            dataType: "json",
+            data: {
+                "aid": localStorage.getItem("aid"),
+                "domains": domains
+            },
+            beforeSend: function () {
+                document.getElementsByClassName("spinner-here-3")[0].hidden = true
+                document.getElementsByClassName("spn-3")[0].hidden = false
+            },
+            complete: function () {
+                document.getElementsByClassName("spinner-here-3")[0].hidden = false
+                document.getElementsByClassName("spn-3")[0].hidden = true
+            },
+            success: function (result, status) {
                 console.log(result.feedback)
             }
         })

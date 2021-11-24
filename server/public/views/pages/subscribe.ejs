@@ -14,65 +14,194 @@
 <body>
     <%- include("../partials/nav") %>
 
-    <div class="container plans">
-        <div class="row text-center">
-            <div class="col">
-                <div class="card mb-4 shadow-lg">
-                    <div class="card-header">
-                        <h3 class="my-0 font-weight-normal">Free</h3>
-                    </div>
-                    <div class="card-body">
-                        <h1 class="card-title pricing-card-title">$0 <small class="text-muted">/ month</small></h1>
-                        <ul class="list-unstyled mt-3 mb-4">
-                            <li>Basic Components</li>
-                            <li>Simple Animations</li>
-                            <li>Templates</li>
-                        </ul>
-                        <button type="button" class="btn btn-lg btn-block btn-outline-primary">Sign up for free</button>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card mb-4 shadow-lg">
-                    <div class="card-header">
-                        <h3 class="my-0 font-weight-normal">Premium Monthly</h3>
-                    </div>
-                    <div class="card-body">
-                        <h1 class="card-title pricing-card-title">$1.3 <small class="text-muted">/ month</small></h1>
-                        <ul class="list-unstyled mt-3 mb-4">
-                            <li>Advanced Components</li>
-                            <li>Complex Animations</li>
-                            <li>Templates</li>
-                        </ul>
-                        <form action="/checkout-monthly" method="post">
-                            <button type="submit" class="btn btn-lg btn-block btn-primary">Buy Premium</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card mb-4 shadow-lg">
-                    <div class="card-header">
-                        <h3 class="my-0 font-weight-normal">Premium Yearly</h3>
-                    </div>
-                    <div class="card-body">
-                        <h1 class="card-title pricing-card-title">$14.6 <small class="text-muted">/ year</small></h1>
-                        <ul class="list-unstyled mt-3 mb-4">
-                            <li>Advanced Components</li>
-                            <li>Complex Animations</li>
-                            <li>Templates</li>
-                        </ul>
-                        <form action="/checkout-yearly" method="post">
-                            <button type="submit" class="btn btn-lg btn-block btn-primary" >Buy Premium</button>
-                        </form>
+        <div class="spn container" hidden>
+            <div class="row">
+                <div class="col text-center mt-5">
+                    <div class="spinner-border text-dark">
+                        <span class="sr-only"></span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <%- include("../partials/footer") %>
+        <div class="spinner-here">
+            <div class="container text-white subbed mt-4 p-4 pb-1 w-50 shadow-lg"
+                style="background-color: rgb(61, 13, 145);" hidden>
+                <div class="row px-4 py-3">
+                    <h1 class="text-center">Premium Settings</h1>
+                </div>
 
+                <div class="row">
+                    <h4 class="fw-light current-plan"> <strong>Current Plan:</strong></h4>
+
+                    <h5 class="fw-light api-key mt-3"> <strong>API Key</strong></h5>
+                    <div class="input-group w-50">
+                        <input type="password" id="API_KEY" class="form-control form-control-sm w-50 api-key" readonly>
+                        <button class="btn btn-primary copy-btn" onclick="copy()" data-bs-toggle="tooltip"
+                            data-bs-placement="top" title="Copy to clipboard">Copy</button>
+                    </div>
+
+                </div>
+
+                <hr class="w-100">
+
+                <h5 class="fw-light mt-3"> <strong>Allowed Domains: </strong></h5>
+                <ul class="w-25 p-0 m-0" id="listDomains">
+
+                </ul>
+                <div class="d-flex inline w-25 p-0">
+                    <input type="url" name="addDomain" class="form-control form-control-sm mt-2" id="addDomain">
+                    <button onclick="addDomain()" class="btn p-0 m-0"><i
+                            class="fas fa-plus mt-3 ms-2 text-primary"></i></button>
+                </div>
+                <div class="spn-3 spinner-border text-light" role="status" hidden>
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <button class="btn btn-primary spinner-here-3" onclick="updateDomains(domains)">
+                    Save
+                </button>
+
+                <hr class="w-100">
+
+                <div class="danger-zone my-4 ">
+                    <div class="spn-2 spinner-border text-light" role="status" hidden>
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <button class="btn btn-danger spinner-here-2" onclick="cancelSubscription()">Cancel
+                        Subscription</button>
+                </div>
+            </div>
+
+        </div>
+        <div class="container plans unsubbed" hidden>
+            <div class="row text-center">
+                <div class="col">
+                    <div class="card mb-4 shadow-lg">
+                        <div class="card-header">
+                            <h3 class="my-0 font-weight-normal">Free</h3>
+                        </div>
+                        <div class="card-body">
+                            <h1 class="card-title pricing-card-title">$0 <small class="text-muted">/ month</small></h1>
+                            <ul class="list-unstyled mt-3 mb-4">
+                                <li>Basic Components</li>
+                                <li>Simple Animations</li>
+                                <li>Templates</li>
+                            </ul>
+                            <button type="button" class="btn btn-lg btn-block btn-outline-secondary">Current
+                                Plan</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card mb-4 shadow-lg">
+                        <div class="card-header">
+                            <h3 class="my-0 font-weight-normal">Premium Monthly</h3>
+                        </div>
+                        <div class="card-body">
+                            <h1 class="card-title pricing-card-title">$1.3 <small class="text-muted">/ month</small>
+                            </h1>
+                            <ul class="list-unstyled mt-3 mb-4">
+                                <li>Advanced Components</li>
+                                <li>Complex Animations</li>
+                                <li>Templates</li>
+                            </ul>
+                            <form action="/checkout-monthly" method="post">
+                                <button type="submit" class="btn btn-lg btn-block btn-primary">Buy Premium</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card mb-4 shadow-lg">
+                        <div class="card-header">
+                            <h3 class="my-0 font-weight-normal">Premium Yearly</h3>
+                        </div>
+                        <div class="card-body">
+                            <h1 class="card-title pricing-card-title">$14.6 <small class="text-muted">/ year</small>
+                            </h1>
+                            <ul class="list-unstyled mt-3 mb-4">
+                                <li>Advanced Components</li>
+                                <li>Complex Animations</li>
+                                <li>Templates</li>
+                            </ul>
+                            <form action="/checkout-yearly" method="post">
+                                <button type="submit" class="btn btn-lg btn-block btn-primary">Buy Premium</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+
+        <%- include("../partials/footer") %>
+
+            <script defer>
+                let domains = []
+
+                function delay(n) {
+                    return new Promise(function (resolve) {
+                        setTimeout(resolve, n * 1000);
+                    });
+                }
+                async function copy() {
+                    var copyText = document.getElementById("API_KEY")
+                    copyText.select()
+                    copyText.setSelectionRange(0, 999999),
+                        navigator.clipboard.writeText(copyText.value)
+                    document.getElementsByClassName("copy-btn")[0].innerHTML = "Copied"
+                    await delay(2);
+                    document.getElementsByClassName("copy-btn")[0].innerHTML = "Copy"
+
+                }
+
+                $(function () {
+                    var txt = $("#addDomain");
+                    var func = function (e) {
+                        if (e.keyCode === 32) {
+                            txt.val(txt.val().replace(/\s/g, ''));
+                        }
+                    }
+                    txt.keyup(func).blur(func);
+                });
+
+
+                function isURL(str) {
+                    var pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+                        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|' + // domain name
+                        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+                        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+                        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+                        '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
+                    return pattern.test(str);
+                }
+
+                function addDomain() {
+                    var val = $("#addDomain").val()
+
+                    const p = domains.push(val)
+                    $("#listDomains").append(`
+                        <li class="p-1" id="item${p}"> ${val}
+                            <button onclick="removeDomain(${p})" class="btn p-0 m-0 text-danger">
+                                <i class="fas fa-trash"></i> 
+                            </button>
+                        </li>
+                    `)
+
+                    $("#addDomain").val(" ")
+                }
+
+                function removeDomain(p) {
+                    domains.splice(p - 1, 1)
+                    var elem = document.getElementById(`item${p}`);
+                    elem.parentNode.removeChild(elem)
+                    $("#addDomain").val(" ")
+
+                }
+
+                getPremiumData()
+            </script>
 </body>
 
 </html>
