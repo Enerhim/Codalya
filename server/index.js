@@ -154,14 +154,9 @@ app.post('/webhook', async (req, res) => {
     case 'checkout.session.completed':
       break;
     case 'invoice.paid':
+      const subscription = await stripe.subscriptions.retrieve(data["subscription"]);
       if (data["amount_paid"] == 10000) {
-
-        const subscription = await stripe.subscriptions.retrieve(
-          data["subscription"]
-        );
-        
         addMonthly(data["customer_email"], subscription["current_period_start"], subscription["current_period_end"], data["subscription"])
-
       } else if (data["amount_paid"] == 110000) {
         console.log("Yearly")
       } else {
@@ -469,8 +464,6 @@ app.post("/getPremiumData", async (req, res) => {
   const q = firebaseDB.query(firebaseDB.collection(firestore, "users"), where("aid", "==", aid))
   const querySnapshot = await firebaseDB.getDocs(q)
 
-  let email
-
   querySnapshot.forEach(async (doc) => {
     response["feedback"].push(doc.get("currently_premium"))
    
@@ -482,15 +475,14 @@ app.post("/getPremiumData", async (req, res) => {
     response["feedback"].push(doc.get("remaining_months"))
     response["feedback"].push(doc.get("sub_end"))
 
-    email = doc.get("user_email")
-  })
+    const q2 = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("customer_email", "==", doc.get("user_email") ))
+    const querySnapshot2 = await firebaseDB.getDocs(q2)
+    
+    querySnapshot2.forEach((doc2) => {
+      response["feedback"].push(doc2.get("key"))
+    })
+})
 
-  const q2 = firebaseDB.query(firebaseDB.collection(firestore, "keys"), where("customer_email", "==", email ))
-  const querySnapshot2 = await firebaseDB.getDocs(q2)
-
-  querySnapshot2.forEach((doc2) => {
-    response["feedback"].push(doc2.get("key"))
-  })
 
   res.send(JSON.stringify(response))
 })

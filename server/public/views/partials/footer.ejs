@@ -114,44 +114,45 @@
     }
 
     function getPremiumData() {
-        $.ajax({
-            url: "http://localhost:8080/getPremiumData",
-            method: "POST",
-            dataType: "json",
-            data: {
-                "aid": localStorage.getItem("aid")
-            },
-            beforeSend: function () {
-                document.getElementsByClassName("spinner-here")[0].hidden = true
-                document.getElementsByClassName("spn")[0].hidden = false
-            },
-            complete: function () {
-                document.getElementsByClassName("spinner-here")[0].hidden = false
-                document.getElementsByClassName("spn")[0].hidden = true
-            },
-            success: function (result, status) {
-                if (!localStorage.getItem("aid")) {
-                    window.location.href = "/signup"
-                }
+        if (localStorage.getItem("aid")) {
+            $.ajax({
+                url: "http://localhost:8080/getPremiumData",
+                method: "POST",
+                dataType: "json",
+                data: {
+                    "aid": localStorage.getItem("aid")
+                },
+                beforeSend: function () {
+                    document.getElementsByClassName("spinner-here")[0].hidden = true
+                    document.getElementsByClassName("spn")[0].hidden = false
+                },
+                complete: function () {
+                    document.getElementsByClassName("spinner-here")[0].hidden = false
+                    document.getElementsByClassName("spn")[0].hidden = true
+                },
+                success: function (result, status) {
+                    if (result.feedback[0] == true) {
+                        document.getElementsByClassName("subbed")[0].hidden = false
+                        document.getElementsByClassName("unsubbed")[0].hidden = true
 
-                if (result.feedback[0] == true) {
-                    document.getElementsByClassName("subbed")[0].hidden = false
-                    document.getElementsByClassName("unsubbed")[0].hidden = true
-
-                    $("#API_KEY").val(result.feedback[4])
-                    if (result.feedback[2] == 1) {
-                        $(".current-plan").html(`<strong>Current Plan: </strong> Monthly`)
-                    } else if (result.feedback[2] > 1) {
-                        $(".current-plan").html(`<strong>Current Plan: </strong> Yearly`)
+                        $("#API_KEY").val(result.feedback[4])
+                        if (result.feedback[2] == 1) {
+                            $(".current-plan").html(`<strong>Current Plan: </strong> Monthly`)
+                        } else if (result.feedback[2] > 1) {
+                            $(".current-plan").html(`<strong>Current Plan: </strong> Yearly`)
+                        } else {
+                        }
                     } else {
+                        document.getElementsByClassName("subbed")[0].hidden = true
+                        document.getElementsByClassName("unsubbed")[0].hidden = false
                     }
-                } else {
-                    document.getElementsByClassName("subbed")[0].hidden = true
-                    document.getElementsByClassName("unsubbed")[0].hidden = false
+                    console.log(result.feedback)
                 }
-                console.log(result.feedback)
-            }
-        })
+            })
+        } else {
+            window.location.href = "/signin "
+        }
+
     }
 
     function cancelSubscription() {
